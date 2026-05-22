@@ -1,34 +1,56 @@
-from groq import Groq 
+import streamlit as st
+import os
+from groq import Groq
 from dotenv import load_dotenv
 import os
 
 load_dotenv()
-
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-def ask_ai(question):
-    response = client.chat. completions.create(
-        model="llama-3.3-70b-versatile",
-        messages=[
-            {
-                "role": "system",
-                "content": "You are a helpful assistant for a dental clinic called  SmileCare. Answer questions about appointments, services, and dental health only. If asked anthing else, politely say you can only help with dental questions"
-            },
-            {
-                "role": "user",
-                "content": question
-            }
-        ]
-    )
-    return response.choices[0].message.content
 
-print("Welcome to SmileCare! How can I assist you today?")
-print("-" * 40)
+st.set_page_config(page_title="🦷 SmileCare Dental Chatbot",)
+st.title("🦷 SmileCare Dental Chatbot")  
+st.caption("Available 24/7 to answer your dental questions.")
 
-while True:
-    user_input = input("You:" )
-    if user_input.lower() =="quit":
-        break
-    answer = ask_ai(user_input)
-    print(f"Assistant: {answer}")
-    print()
+SYSTEM_PROMPT = """Your are a friendly assistant for SmileCare Dental Clinic,
+
+
+SERVICES & PRICES:
+- Regular Checkup: $50
+- Teeth Cleaning: $80
+- Cavity Filling: $150
+- Root Canal: $500
+- Teeth Whitening: $200
+- Consultation: $30
+HOURS:
+- Monday to Saturday: 8am - 7pm, Sunday closed
+PHONE: (555) 123-4567
+ADDRESS: 123 Smile St, Happy Town, USA
+BOOKING: Call or Whatsapp us anytime.
+
+RULES: Only answer dental related questions,
+If unsure, say "Let me check with our dental experts and get back to you!
+Keep answers under 3 sentences and be warm."""
+
+
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for m in st.session_state.messages:
+    with st.chat_message(m["role"]):
+        st.write(m["content"])
+
+if prompt := st.chat_input("Ask me anything about dental care or our clinic!"): 
+    st.session_state.messages.append({"role": "user", "content": prompt })
+    with st.chat_message("user"):
+        st.write(prompt)
+    with st.chat_message("assistant"):
+        with st.spinner(""):
+            r= client.chat.completion.create(
+            model=""llama-3.3-70b-versatile"",
+            messages=[{"role":"system","content": SYSTEM_PROMPT}
+                     + st.session_state.message],
+            )
+            reply = r.choices[0].message.content
+            st.write(reply)
+    st.session_state.messages.append({"role":"assistant","content": reply})
