@@ -143,22 +143,12 @@ def init_groq_client():
     
     return Groq(api_key=api_key)
 
-# Initialize session state
-if "messages" not in st.session_state:
-    st.session_state.messages = []
-
-if "model" not in st.session_state:
-    st.session_state.model = "llama-3.3-70b-versatile"
-
-if "temperature" not in st.session_state:
-    st.session_state.temperature = 0.7
-
-    #Read from file 
+#Read from file 
 def load_info():
     with open("clilnic_info.txt", "r", encoding="utf-8") as f:
         return f.read()
     
-    clinic_info = load_info()
+ clinic_info = load_info()
 
 # SmileCare system prompt
 SYSTEM_PROMPT = """You are a helpful assistant for a dental clinic called SmileCare. 
@@ -174,6 +164,39 @@ RULES:
 - Keep answers under 3 sentences
 - Always offer to help with something else
 Keep answers under 3 sentences(strictly) """
+
+# Initialize session state
+if "messages" not in st.session_state:
+    st.session_state.messages = []
+
+for m in st.session_state.messages:
+    with st.chat_message(m["role"]):
+        st.write(m["content"])
+
+if prompt := st.chat_input("Ask about appointments, prices, or our services..."):
+    st.session_state.messages.append({"role":"user","content":prompt})
+    with st.chat_message("user"):
+        st.write(prompt)
+    with st.chat_message("assistant"):
+        with st.spinner(""):
+            r = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[
+                    {"role":"system","content":SYSTEM_PROMPT},
+                    *st.session_state.messages
+                ]
+            )
+            reply = r.choices[0].message.content
+            st.write(reply)
+    st.session_state.messages.append({"role":"assistant","content":reply})
+
+if "model" not in st.session_state:
+    st.session_state.model = "llama-3.3-70b-versatile"
+
+if "temperature" not in st.session_state:
+    st.session_state.temperature = 0.7
+
+    
 
 # Header
 st.markdown("""
