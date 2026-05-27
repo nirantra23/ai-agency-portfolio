@@ -8,6 +8,7 @@ from dotenv import load_dotenv
 env_path = Path(__file__).parent / ".env"
 load_dotenv(dotenv_path=env_path)
 
+
 # Page configuration
 st.set_page_config(
     page_title="🦷 SmileCare Dental Chatbot",
@@ -152,25 +153,27 @@ if "model" not in st.session_state:
 if "temperature" not in st.session_state:
     st.session_state.temperature = 0.7
 
+    #Read from file 
+def load_info():
+    with open("clilnic_info.txt", "r", encoding="utf-8") as f:
+        return f.read()
+    
+    clinic_info = load_info()
+
 # SmileCare system prompt
 SYSTEM_PROMPT = """You are a helpful assistant for a dental clinic called SmileCare. 
 Answer questions about appointments, services, and dental health only. 
 If asked anything else, politely say you can only help with dental questions.
-SERVICES & PRICES:
-- Consultation: $50
-- Teeth Cleaning: $100–$150
-- Whitening: $400–$600
-- Filling: $75–$187
-- Root Canal: $375–$750
-- Braces (metal): $3,125–$5,000
 
-HOURS: Mon–Sat 9am–7pm. Sunday closed.
-PHONE: +91-XXXXXXXXXX
-BOOKING: Call or WhatsApp us anytime.
+Everything you need to know about the clinic:
+{clinic_info}
 
-RULES: Only answer dental questions. 
-If unsure, say "Let me have our team call you."
-Keep answers under 3 sentences. Be warm """
+RULES:
+- Answer ONLY from the information above
+- If unsure: say "Let me have our team call you. May I take your number?"
+- Keep answers under 3 sentences
+- Always offer to help with something else
+Keep answers under 3 sentences(strictly) """
 
 # Header
 st.markdown("""
